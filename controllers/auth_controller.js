@@ -26,6 +26,7 @@ const login = (req, res, next) => {
       const cookieOptions = {
         httpOnly: true,
         secure: true,
+        maxAge: 3600000,
       };
 
       res.cookie('jwt', token, cookieOptions);
