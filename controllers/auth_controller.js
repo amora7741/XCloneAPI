@@ -8,7 +8,6 @@ const JWT_EXPIRES_IN = '1h';
 const login = (req, res, next) => {
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
-      console.log(err);
       return res.status(400).json({
         message: info ? info.message : 'Login failed',
         user: user,
@@ -26,7 +25,7 @@ const login = (req, res, next) => {
 
       const cookieOptions = {
         httpOnly: true,
-        // secure: true, // Uncomment this line if you serve your site over HTTPS only
+        secure: true,
       };
 
       res.cookie('jwt', token, cookieOptions);
