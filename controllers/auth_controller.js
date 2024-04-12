@@ -1,16 +1,14 @@
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const User = require('../models/User');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = '1h';
+require('dotenv').config();
 
 const login = (req, res, next) => {
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
       return res.status(400).json({
         message: info ? info.message : 'Login failed',
-        user: user,
       });
     }
 
@@ -19,18 +17,25 @@ const login = (req, res, next) => {
         res.send(err);
       }
 
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN,
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
       });
 
       const cookieOptions = {
         httpOnly: true,
-        secure: true,
         maxAge: 3600000,
       };
 
       res.cookie('jwt', token, cookieOptions);
-      return res.json({ success: true, token: token });
+      return res.json({
+        success: true,
+        token: token,
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+        },
+      });
     });
   })(req, res, next);
 };
@@ -41,4 +46,36 @@ const logout = (req, res, next) => {
   return res.json({ success: true, message: 'You have been logged out.' });
 };
 
-module.exports = { login, logout };
+const validate = async (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (!token) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ _id: decoded.id });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token' });
+  }
+};
+
+module.exports = { login, logout, validate };
