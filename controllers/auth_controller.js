@@ -27,6 +27,7 @@ const login = (req, res, next) => {
       };
 
       res.cookie('jwt', token, cookieOptions);
+      res.cookie('cookieExists', 1, { maxAge: 3600000 });
       return res.json({
         success: true,
         token: token,
