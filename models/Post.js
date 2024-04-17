@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const tweetSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema({
   text: String,
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   timeStamp: { type: Date, default: Date.now() },
@@ -9,4 +9,4 @@ const tweetSchema = new mongoose.Schema({
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
 });
 
-module.exports = mongoose.model('Tweet', tweetSchema);
+module.exports = mongoose.model('Post', postSchema);
