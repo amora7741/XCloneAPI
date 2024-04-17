@@ -42,8 +42,8 @@ const login = (req, res, next) => {
 };
 
 const logout = (req, res, next) => {
-  // Clear the JWT cookie
   res.clearCookie('jwt');
+  res.clearCookie('cookieExists');
   return res.json({ success: true, message: 'You have been logged out.' });
 };
 
