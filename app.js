@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
+const postsRouter = require('./routes/posts');
 
 require('./authsetup/passportconfig');
 
@@ -36,6 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
