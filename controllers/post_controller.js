@@ -30,7 +30,9 @@ const createPost = [
 
 const getAllPosts = asyncHandler(async (req, res, next) => {
   try {
-    const posts = await Post.find();
+    const posts = await Post.find()
+      .populate('user', 'username name _id')
+      .sort({ timeStamp: -1 });
     return res.status(200).json(posts);
   } catch (error) {
     return res.status(500).json({ error: 'Internal server error' });
