@@ -29,14 +29,41 @@ const createPost = [
 ];
 
 const getAllPosts = asyncHandler(async (req, res, next) => {
-  try {
-    const posts = await Post.find()
-      .populate('user', 'username name _id')
-      .sort({ timeStamp: -1 });
-    return res.status(200).json(posts);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  const posts = await Post.find()
+    .populate('user', 'username name _id')
+    .sort({ timeStamp: -1 });
+
+  return res.status(200).json(posts);
 });
 
-module.exports = { createPost, getAllPosts };
+const likePost = asyncHandler(async (req, res, next) => {
+  const postId = req.params.postId;
+  const userId = req.user.id;
+
+  const post = await Post.findById(postId);
+  if (!post) {
+    return res.status(404).json({ message: 'Post not found' });
+  }
+
+  const isLiked = post.likes.includes(userId);
+
+  if (isLiked) {
+    await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { likes: userId } },
+      { new: true }
+    );
+  } else {
+    await Post.findByIdAndUpdate(
+      postId,
+      { $addToSet: { likes: userId } },
+      { new: true }
+    );
+  }
+
+  return res.status(200).json({
+    liked: !isLiked,
+  });
+});
+
+module.exports = { createPost, getAllPosts, likePost };
