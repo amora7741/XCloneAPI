@@ -24,7 +24,12 @@ const createPost = [
 
     await post.save();
 
-    return res.status(201).json(post);
+    const populatedPost = await Post.findById(post._id).populate(
+      'user',
+      'username name _id'
+    );
+
+    return res.status(201).json(populatedPost);
   }),
 ];
 
