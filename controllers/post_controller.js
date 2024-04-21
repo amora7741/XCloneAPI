@@ -1,6 +1,7 @@
 const { body, validationResult } = require('express-validator');
 const asyncHandler = require('express-async-handler');
 const Post = require('../models/Post');
+const User = require('../models/User');
 
 const createPost = [
   body('post_text')
@@ -52,6 +53,27 @@ const getAllPosts = asyncHandler(async (req, res, next) => {
   return res.status(200).json(postsWithCounts);
 });
 
+const getPost = asyncHandler(async (req, res, next) => {
+  const { postId, username } = req.params;
+
+  const user = await User.findOne({ username: username });
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  const post = await Post.findOne({
+    _id: postId,
+    user: user._id,
+  }).populate('user', 'username name _id');
+
+  if (!post) {
+    return res.status(404).json({ message: 'Post not found' });
+  }
+
+  return res.status(200).json(post);
+});
+
 const likePost = asyncHandler(async (req, res, next) => {
   const postId = req.params.postId;
   const userId = req.user.id;
@@ -82,4 +104,4 @@ const likePost = asyncHandler(async (req, res, next) => {
   });
 });
 
-module.exports = { createPost, getAllPosts, likePost };
+module.exports = { createPost, getAllPosts, getPost, likePost };
