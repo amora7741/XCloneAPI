@@ -38,7 +38,18 @@ const getAllPosts = asyncHandler(async (req, res, next) => {
     .populate('user', 'username name _id')
     .sort({ timeStamp: -1 });
 
-  return res.status(200).json(posts);
+  const postsWithCounts = posts.map((post) => ({
+    ...post.toObject(),
+    likesCount: post.likes.length,
+    repostsCount: post.reposts.length,
+    commentsCount: post.comments.length,
+    isLiked: post.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+    comments: undefined,
+  }));
+
+  return res.status(200).json(postsWithCounts);
 });
 
 const likePost = asyncHandler(async (req, res, next) => {
