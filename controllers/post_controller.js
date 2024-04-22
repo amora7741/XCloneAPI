@@ -71,7 +71,18 @@ const getPost = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ message: 'Post not found' });
   }
 
-  return res.status(200).json(post);
+  const isLiked = post.likes.includes(req.user.id);
+
+  const postWithLikeInfo = {
+    ...post.toObject(),
+    likesCount: post.likes.length,
+    repostsCount: post.reposts.length,
+    isLiked: post.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+  };
+
+  return res.status(200).json(postWithLikeInfo);
 });
 
 const likePost = asyncHandler(async (req, res, next) => {
