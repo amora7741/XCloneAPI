@@ -71,8 +71,6 @@ const getPost = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ message: 'Post not found' });
   }
 
-  const isLiked = post.likes.includes(req.user.id);
-
   const postWithLikeInfo = {
     ...post.toObject(),
     likesCount: post.likes.length,
