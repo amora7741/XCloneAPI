@@ -4,6 +4,8 @@ const User = require('../models/User');
 
 require('dotenv').config();
 
+const MAX_AGE = 5 * 3600000; // 5 hours
+
 const login = (req, res, next) => {
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
@@ -23,11 +25,11 @@ const login = (req, res, next) => {
 
       const cookieOptions = {
         httpOnly: true,
-        maxAge: 3600000,
+        maxAge: MAX_AGE,
       };
 
       res.cookie('jwt', token, cookieOptions);
-      res.cookie('cookieExists', 1, { maxAge: 3600000 });
+      res.cookie('cookieExists', 1, { maxAge: MAX_AGE });
       return res.json({
         success: true,
         token: token,

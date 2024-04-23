@@ -113,4 +113,37 @@ const likePost = asyncHandler(async (req, res, next) => {
   });
 });
 
-module.exports = { createPost, getAllPosts, getPost, likePost };
+const getComments = asyncHandler(async (req, res, next) => {
+  const { commentIds } = req.body;
+
+  console.log(commentIds);
+
+  if (!Array.isArray(commentIds) || commentIds.length === 0) {
+    return res
+      .status(400)
+      .json({ message: 'Invalid or empty comment IDs array' });
+  }
+
+  const comments = await Post.find({
+    _id: { $in: commentIds },
+  }).populate('user', 'username name _id');
+
+  if (!comments || comments.length === 0) {
+    return res.status(404).json({ message: 'No comments found' });
+  }
+
+  const formattedComments = comments.map((comment) => ({
+    ...comment.toObject(),
+    likesCount: comment.likes.length,
+    repostsCount: comment.reposts.length,
+    commentsCount: comment.comments.length,
+    isLiked: comment.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+    comments: undefined,
+  }));
+
+  return res.status(200).json(formattedComments);
+});
+
+module.exports = { createPost, getAllPosts, getPost, likePost, getComments };

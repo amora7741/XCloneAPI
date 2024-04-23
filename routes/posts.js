@@ -8,5 +8,10 @@ router.get('/:username/status/:postId', validate, post_controller.getPost);
 
 router.post('/', validate, post_controller.createPost);
 router.post('/:postId/like', validate, post_controller.likePost);
+router.post(
+  '/:username/status/:postId/comments',
+  validate,
+  post_controller.getComments
+);
 
 module.exports = router;
