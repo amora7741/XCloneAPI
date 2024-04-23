@@ -116,8 +116,6 @@ const likePost = asyncHandler(async (req, res, next) => {
 const getComments = asyncHandler(async (req, res, next) => {
   const { commentIds } = req.body;
 
-  console.log(commentIds);
-
   if (!Array.isArray(commentIds) || commentIds.length === 0) {
     return res
       .status(400)
