@@ -200,16 +200,18 @@ const createComment = [
       return res.status(404).json({ message: 'Created comment not found' });
     }
 
-    const postWithLikeInfo = {
+    const formattedReply = {
       ...populatedPost.toObject(),
       likesCount: populatedPost.likes.length,
       repostsCount: populatedPost.reposts.length,
+      commentsCount: populatedPost.comments.length,
       isLiked: populatedPost.likes.includes(req.user.id),
       likes: undefined,
       reposts: undefined,
+      comments: undefined,
     };
 
-    return res.status(201).json(postWithLikeInfo);
+    return res.status(201).json(formattedReply);
   }),
 ];
 
