@@ -13,5 +13,6 @@ router.post(
   validate,
   post_controller.getComments
 );
+router.post('/:username/status/:postId/comments/create', validate);
 
 module.exports = router;

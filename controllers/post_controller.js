@@ -124,7 +124,9 @@ const getComments = asyncHandler(async (req, res, next) => {
 
   const comments = await Post.find({
     _id: { $in: commentIds },
-  }).populate('user', 'username name _id');
+  })
+    .populate('user', 'username name _id')
+    .sort({ timeStamp: -1 });
 
   if (!comments || comments.length === 0) {
     return res.status(404).json({ message: 'No comments found' });
