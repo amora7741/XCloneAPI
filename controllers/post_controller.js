@@ -35,7 +35,7 @@ const createPost = [
 ];
 
 const getAllPosts = asyncHandler(async (req, res, next) => {
-  const posts = await Post.find()
+  const posts = await Post.find({ parentPost: null })
     .populate('user', 'username name _id')
     .sort({ timeStamp: -1 });
 
@@ -146,4 +146,78 @@ const getComments = asyncHandler(async (req, res, next) => {
   return res.status(200).json(formattedComments);
 });
 
-module.exports = { createPost, getAllPosts, getPost, likePost, getComments };
+const createComment = [
+  body('comment_text')
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Post must be between 1 and 100 characters.')
+    .escape(),
+
+  asyncHandler(async (req, res, next) => {
+    console.log(req.body);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { postId, username } = req.params;
+
+    const user = await User.findOne({ username: username });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const parentPost = await Post.findOne({
+      _id: postId,
+      user: user._id,
+    });
+
+    if (!parentPost) {
+      return res.status(404).json({ message: 'Parent post not found' });
+    }
+
+    const post = new Post({
+      text: req.body.comment_text,
+      user: req.user.id,
+      parentPost: parentPost ? parentPost._id : null,
+      timeStamp: Date.now(),
+    });
+
+    await post.save();
+
+    if (parentPost) {
+      parentPost.comments.push(post._id);
+      await parentPost.save();
+    }
+
+    const populatedPost = await Post.findOne({
+      _id: post._id,
+      user: req.user.id,
+    }).populate('user', 'username name _id');
+
+    if (!populatedPost) {
+      return res.status(404).json({ message: 'Created comment not found' });
+    }
+
+    const postWithLikeInfo = {
+      ...populatedPost.toObject(),
+      likesCount: populatedPost.likes.length,
+      repostsCount: populatedPost.reposts.length,
+      isLiked: populatedPost.likes.includes(req.user.id),
+      likes: undefined,
+      reposts: undefined,
+    };
+
+    return res.status(201).json(postWithLikeInfo);
+  }),
+];
+
+module.exports = {
+  createPost,
+  getAllPosts,
+  getPost,
+  likePost,
+  getComments,
+  createComment,
+};
