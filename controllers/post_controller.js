@@ -153,7 +153,6 @@ const createComment = [
     .escape(),
 
   asyncHandler(async (req, res, next) => {
-    console.log(req.body);
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
