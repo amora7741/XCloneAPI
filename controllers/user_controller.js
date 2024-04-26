@@ -28,52 +28,26 @@ const userSignup = async (req, res, next) => {
   }
 };
 
+const isUserFollowing = async (userId, accountId) => {
+  const followExists = await Follow.findOne({
+    user: userId,
+    follows: accountId,
+  });
+  return !!followExists;
+};
+
 const getRandomUsers = asyncHandler(async (req, res, next) => {
   const userId = new mongoose.Types.ObjectId(String(req.user.id));
 
   const randomUsers = await User.aggregate([
     { $match: { _id: { $ne: userId } } },
     { $sample: { size: 3 } },
-    {
-      $lookup: {
-        from: 'follows',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$user', userId] },
-                  { $eq: ['$follows', '$$userId'] },
-                ],
-              },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              isFollowing: {
-                $cond: {
-                  if: { $gt: ['$follows', null] },
-                  then: true,
-                  else: false,
-                },
-              },
-            },
-          },
-        ],
-        as: 'followingInfo',
-      },
-    },
-    {
-      $addFields: {
-        isFollowing: { $arrayElemAt: ['$followingInfo.isFollowing', 0] },
-      },
-    },
-    {
-      $project: { _id: 1, name: 1, username: 1, isFollowing: 1 },
-    },
+    { $project: { _id: 1, name: 1, username: 1 } },
   ]);
+
+  for (const user of randomUsers) {
+    user.isFollowing = await isUserFollowing(userId, user._id);
+  }
 
   return res.status(200).json(randomUsers);
 });
@@ -81,48 +55,15 @@ const getRandomUsers = asyncHandler(async (req, res, next) => {
 const getUsers = asyncHandler(async (req, res, next) => {
   const userId = new mongoose.Types.ObjectId(String(req.user.id));
 
-  const users = await User.aggregate([
-    { $match: { _id: { $ne: userId } } },
-    {
-      $lookup: {
-        from: 'follows',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$user', userId] },
-                  { $eq: ['$follows', '$$userId'] },
-                ],
-              },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              isFollowing: {
-                $cond: {
-                  if: { $gt: ['$follows', null] },
-                  then: true,
-                  else: false,
-                },
-              },
-            },
-          },
-        ],
-        as: 'followingInfo',
-      },
-    },
-    {
-      $addFields: {
-        isFollowing: { $arrayElemAt: ['$followingInfo.isFollowing', 0] },
-      },
-    },
-    {
-      $project: { _id: 1, name: 1, username: 1, isFollowing: 1 },
-    },
-  ]);
+  const users = await User.find({
+    _id: { $ne: userId },
+  })
+    .select('_id name username')
+    .lean();
+
+  for (const user of users) {
+    user.isFollowing = await isUserFollowing(userId, user._id);
+  }
 
   return res.status(200).json(users);
 });
