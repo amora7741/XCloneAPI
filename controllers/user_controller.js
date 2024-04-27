@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Follow = require('../models/Follow');
+const Post = require('../models/Post');
 
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
@@ -94,4 +95,84 @@ const followUser = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { userSignup, getRandomUsers, getUsers, followUser };
+const getUserPosts = asyncHandler(async (req, res, next) => {
+  const { username } = req.params;
+  const user = await User.findOne({ username });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  const posts = await Post.find({ user: user._id, parentPost: null })
+    .populate('user', 'username name _id')
+    .sort({ timeStamp: -1 });
+
+  const postsWithCounts = posts.map((post) => ({
+    ...post.toObject(),
+    likesCount: post.likes.length,
+    repostsCount: post.reposts.length,
+    commentsCount: post.comments.length,
+    isLiked: post.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+    comments: undefined,
+  }));
+
+  return res.status(200).json(postsWithCounts);
+});
+
+const getUserReplies = asyncHandler(async (req, res, next) => {
+  const { username } = req.params;
+  const user = await User.findOne({ username });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  const replies = await Post.find({ user: user._id, parentPost: { $ne: null } })
+    .populate('user', 'username name _id')
+    .sort({ timeStamp: -1 });
+
+  const repliesWithCounts = replies.map((post) => ({
+    ...post.toObject(),
+    likesCount: post.likes.length,
+    repostsCount: post.reposts.length,
+    commentsCount: post.comments.length,
+    isLiked: post.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+    comments: undefined,
+  }));
+
+  return res.status(200).json(repliesWithCounts);
+});
+
+const getUserLikes = asyncHandler(async (req, res, next) => {
+  const { username } = req.params;
+  const user = await User.findOne({ username });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  const likes = await Post.find({ likes: user._id })
+    .populate('user', 'username name _id')
+    .sort({ timeStamp: -1 });
+
+  const likesWithCounts = likes.map((post) => ({
+    ...post.toObject(),
+    likesCount: post.likes.length,
+    repostsCount: post.reposts.length,
+    commentsCount: post.comments.length,
+    isLiked: post.likes.includes(req.user.id),
+    likes: undefined,
+    reposts: undefined,
+    comments: undefined,
+  }));
+
+  return res.status(200).json(likesWithCounts);
+});
+
+module.exports = {
+  userSignup,
+  getRandomUsers,
+  getUsers,
+  followUser,
+  getUserLikes,
+  getUserPosts,
+  getUserReplies,
+};
