@@ -69,6 +69,25 @@ const getUsers = asyncHandler(async (req, res, next) => {
   return res.status(200).json(users);
 });
 
+const getUser = asyncHandler(async (req, res, next) => {
+  const { username } = req.params;
+  const userId = new mongoose.Types.ObjectId(String(req.user.id));
+
+  const user = await User.findOne({ username })
+    .select('_id name username')
+    .lean();
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  user.isFollowing = await isUserFollowing(userId, user._id);
+  user.followingCount = await Follow.countDocuments({ user: user._id });
+  user.followersCount = await Follow.countDocuments({ follows: user._id });
+  user.isCurrentUser = userId.equals(user._id);
+
+  return res.status(200).json(user);
+});
+
 const followUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const accountId = req.params.accountId;
@@ -175,4 +194,5 @@ module.exports = {
   getUserLikes,
   getUserPosts,
   getUserReplies,
+  getUser,
 };

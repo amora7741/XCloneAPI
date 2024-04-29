@@ -5,6 +5,7 @@ const { validate } = require('../middleware/validate_user');
 
 router.get('/', validate, user_controller.getUsers);
 router.get('/random', validate, user_controller.getRandomUsers);
+router.get('/:username', validate, user_controller.getUser);
 router.get('/:username/posts', validate, user_controller.getUserPosts);
 router.get('/:username/replies', validate, user_controller.getUserReplies);
 router.get('/:username/likes', validate, user_controller.getUserLikes);
