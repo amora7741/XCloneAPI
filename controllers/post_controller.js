@@ -2,6 +2,7 @@ const { body, validationResult } = require('express-validator');
 const asyncHandler = require('express-async-handler');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Follow = require('../models/Follow');
 
 const createPost = [
   body('post_text')
@@ -39,16 +40,27 @@ const getAllPosts = asyncHandler(async (req, res, next) => {
     .populate('user', 'username name _id')
     .sort({ timeStamp: -1 });
 
-  const postsWithCounts = posts.map((post) => ({
-    ...post.toObject(),
-    likesCount: post.likes.length,
-    repostsCount: post.reposts.length,
-    commentsCount: post.comments.length,
-    isLiked: post.likes.includes(req.user.id),
-    likes: undefined,
-    reposts: undefined,
-    comments: undefined,
-  }));
+  const userFollows = await Follow.find({ user: req.user.id }).lean();
+
+  const userFollowsSet = new Set(
+    userFollows.map((follow) => follow.follows.toString())
+  );
+
+  const postsWithCounts = posts.map((post) => {
+    const isFromFollowing = userFollowsSet.has(post.user._id.toString());
+
+    return {
+      ...post.toObject(),
+      likesCount: post.likes.length,
+      repostsCount: post.reposts.length,
+      commentsCount: post.comments.length,
+      isLiked: post.likes.includes(req.user.id),
+      isFromFollowing,
+      likes: undefined,
+      reposts: undefined,
+      comments: undefined,
+    };
+  });
 
   return res.status(200).json(postsWithCounts);
 });
