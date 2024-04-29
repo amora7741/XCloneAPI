@@ -26,10 +26,18 @@ const login = (req, res, next) => {
       const cookieOptions = {
         httpOnly: true,
         maxAge: MAX_AGE,
+        sameSite: 'None',
+        secure: true,
+        path: '/',
       };
 
       res.cookie('jwt', token, cookieOptions);
-      res.cookie('cookieExists', 1, { maxAge: MAX_AGE });
+      res.cookie('cookieExists', 1, {
+        maxAge: MAX_AGE,
+        sameSite: 'None',
+        secure: true,
+        path: '/',
+      });
       return res.json({
         success: true,
         token: token,
