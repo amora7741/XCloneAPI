@@ -4,7 +4,7 @@ This is the backend for XClone, which contains all of the APIs for most of the m
 ## Installation
 * Clone the repository using `git clone`
 * `cd` into the XCloneAPI directory
-* Create a .env file in the root of the project, and add the variables MONGO_URI, JWT_SECRET, and FRONTEND_URL
+* Create a .env file in the root of the project, and add the variables `MONGO_URI, JWT_SECRET, and FRONTEND_URL`
 * MONGO_URI needs to store the connection string for a MongoDB cluster, with the XClone database i.e `MONGO_URI="mongodb+srv://<username>:<password>@cluster0...mongodb.net/XClone?retryWrites=true&w=majority&appName=Cluster0"`
 * JWT_SECRET can store any text, preferably a long string, i.e `JWT_SECRET="adw21-23r2r-3t423-hg122"`
 * FRONTEND_URL needs to store the base URL for the frontend, with the default frontend local url being http://localhost:5173, i.e `FRONTEND_URL="http://localhost:5173"`
